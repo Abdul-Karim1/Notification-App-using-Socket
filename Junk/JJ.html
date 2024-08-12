@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Workspace Notifications</title>
+  <script src="/socket.io/socket.io.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+    }
+    #notifications {
+      margin-top: 20px;
+    }
+    .notification {
+      padding: 10px;
+      margin-bottom: 10px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      background-color: #f9f9f9;
+    }
+  </style>
+</head>
+<body>
+  <h1>Workspace Notifications</h1>
+  
+  <div id="notifications"></div>
+
+  <script>
+    // Connect to the server
+    const socket = io('http://localhost:3000');
+
+    // Prompt user for their ID and emit it to the server
+    const userId = prompt('Please enter your user ID:');
+    if (userId) {
+      socket.emit('join', userId);
+    } else {
+      console.log('User ID not provided');
+    }
+
+    // Listen for room connection confirmation
+    socket.on('connectedRoom', (message) => {
+      console.log(message);
+    });
+
+        // Listen for new destination events
+        socket.on('newDestination', (destination) => {
+      displayNotification(`New destination added: ${destination.name}`, 'new');
+    });
+
+    // Listen for updated destination events
+// Listen for updated destination events
+socket.on('updateDestination', ({ id, updates }) => {
+  let updateText = '';
+  for (const [field, value] of Object.entries(updates)) {
+    updateText += `${field}: ${value}, `;
+  }
+  updateText = updateText.slice(0, -2); // Remove trailing comma and space
+  displayNotification(`Destination updated (ID: ${id}): ${updateText}`, 'update');
+});
+
+// Listen for deleted destination events
+socket.on('deleteDestination', ({ id }) => {
+  displayNotification(`Destination deleted (ID: ${id})`, 'delete');
+});
+
+
+    // Function to display notifications
+    function displayNotification(message, type) {
+      const notificationDiv = document.getElementById('notifications');
+      const newNotification = document.createElement('div');
+      newNotification.className = `notification ${type}`;
+      newNotification.textContent = message;
+      notificationDiv.appendChild(newNotification);
+    }
+    // // Listen for new destination events
+    // socket.on('newDestination', (destination) => {
+    //   const notificationDiv = document.getElementById('notifications');
+    //   const newNotification = document.createElement('div');
+    //   newNotification.className = 'notification';
+    //   newNotification.textContent = `New destination added: ${destination.name}`;
+    //   notificationDiv.appendChild(newNotification);
+    // });
+  </script>
+</body>
+</html>
